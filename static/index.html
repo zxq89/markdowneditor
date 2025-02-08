@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Online Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .container {
+            margin-top: 30px;
+        }
+        .editor, .preview {
+            width: 48%;
+            min-height: 700px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .editor {
+            float: left;
+        }
+        .preview {
+            float: right;
+            background-color: #f8f8f8;
+            /*overflow-y: auto;*/
+            overflow: visible; 
+        }
+        .inline-fieldset {
+                display: inline-block; /* 使 <fieldset> 元素并排显示 */
+                margin-right: 10px;    /* 设置元素之间的间距 */
+                padding: 10px;
+                /*width: 200px;  */        /* 可以设置宽度，避免过宽 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Markdown 在线编辑</h2>
+
+        <!-- 按钮组 -->
+    <div class="btn-group" role="group" aria-label="Markdown 示例按钮">
+                <fieldset class="inline-fieldset">
+                <legend>组织</legend>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('# 标题一\n## 标题二\n### 标题三\n#### 标题四')">标题</button>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('- 无序列表项 1\n- 无序列表项 2\n- 无序列表项 3')">列表</button>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('| 左对齐 | 右对齐 | 居中对齐 |\n|:-------|-------:|:--------:|\n| 内容1  | 内容2  | 内容3    |\n| 内容4  | 内容5  | 内容6    |')">表格</button>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('- [ ] 任务1\n- [x] 任务2\n- [ ] 任务3')">任务</button>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('---')">分割线</button>
+                </fieldset>
+
+                <fieldset class="inline-fieldset">
+                <legend>文字样式</legend>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('**加粗**')">加粗</button>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('*斜体*')">斜体</button>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('~~删除线~~')">删除线</button>
+                </fieldset>
+
+                <fieldset class="inline-fieldset">
+                <legend>引用</legend>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('> 引用')">引用</button>
+                        <button type="button" class="btn btn-primary" onclick=  "insertMarkdown('[链接文本](https://www.example.com)')">链接</button>
+                        <button type="button" class="btn btn-primary" onclick="insertMarkdown('![图片描述](https://www.example.com/image.jpg)')">引用图片</button>
+                </fieldset>
+
+                <fieldset class="inline-fieldset">
+                <legend>代码块</legend>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('```c++\ncd testdir\nls\n```')">bash代码块</button>
+                        <button type="button" class="btn btn-primary" onclick=
+                                "insertMarkdown('```c++\nstd::cout<<&quot;hello world&quot;<<std::endl;\n```')">c++代码块</button>
+                        <button type="button" class="btn btn-primary" onclick=  "insertMarkdown('```go\nfmt.Println(&quot;hello world&quot;)\n```')">go代码块</button>
+                </fieldset>
+                <button onClick="captureScreenshot()">截图</button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <textarea id="editor" class="editor" placeholder="Write your markdown here..."></textarea>
+        </div>
+        <div class="col-md-6">
+            <div id="preview" class="preview"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Include marked.js (Markdown to HTML converter)  and dom-to-image.js (support save image)  -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script> -->
+<script src="/static/marked.min.js"></script>
+<script src="/static/dom-to-image.min.js"></script>
+<script>
+    //import domtoimage from "dom-to-image";
+    // 获取编辑器和预览区的 DOM
+    const editor = document.getElementById("editor");
+    const preview = document.getElementById("preview");
+
+    // 实时渲染 markdown
+    editor.addEventListener("input", function () {
+        const markdownText = editor.value;
+        preview.innerHTML = marked.parse(markdownText);  // 使用 marked.parse() 来渲染
+    });
+
+    const captureScreenshot = () => {
+        console.log(domtoimage);
+        const element = document.getElementById("preview");
+
+        domtoimage.toPng(element)
+        .then((dataUrl) => {
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = "screenshot.png";
+        link.click();
+        })
+        .catch((error) => console.error("截图失败:", error));
+    };
+
+    // 初始化时进行一次渲染
+    editor.dispatchEvent(new Event('input'));
+
+    function insertMarkdown(example) {
+        const cursorPos = editor.selectionStart;  // 获取光标位置
+        const currentText = editor.value;
+        const beforeText = currentText.substring(0, cursorPos);
+        const afterText = currentText.substring(cursorPos);
+
+        // 插入对应的 Markdown 示例到光标处
+        editor.value = beforeText + '\n' + example +'\n'+ afterText;
+
+        // 将光标放置在追加内容后面
+        editor.selectionStart = editor.selectionEnd = cursorPos + example.length + 2;
+
+        // 更新右侧预览
+        preview.innerHTML = marked.parse(editor.value);
+    }
+</script>
+
+</body>
+</html>
